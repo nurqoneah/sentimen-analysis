@@ -1,0 +1,280 @@
+{% extends "base.html" %} {% block title %}Scraping Progress - Simple Sentiment Analysis{% endblock %} {% block content %}
+<div class="container">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12 text-center">
+      <h1 class="display-5">
+        <i class="fas fa-download me-3"></i>
+        Scraping in Progress
+      </h1>
+      <p class="lead text-muted">Extracting comments from {{ platform.title() }} and analyzing sentiment...</p>
+    </div>
+  </div>
+
+  <!-- Progress Card -->
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-lg">
+        <div class="card-header bg-info text-white text-center">
+          <h4 class="mb-0">
+            <i class="fas fa-{{ 'instagram' if platform == 'instagram' else 'video' }} me-2"></i>
+            {{ platform.title() }} Post: {{ post_id }}
+          </h4>
+        </div>
+        <div class="card-body p-4">
+          <!-- Progress Bar -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-bold">Progress:</span>
+              <span id="progress-text">Starting...</span>
+            </div>
+            <div class="progress" style="height: 20px">
+              <div id="progress-bar" class="progress-bar bg-info progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+            </div>
+          </div>
+
+          <!-- Status Messages -->
+          <div class="mb-4">
+            <h6 class="text-muted mb-3">
+              <i class="fas fa-list me-2"></i>
+              Status Log:
+            </h6>
+            <div id="status-log" class="bg-light p-3 rounded" style="height: 300px; overflow-y: auto; font-family: monospace; font-size: 0.9rem">
+              <div class="text-muted">Initializing scraper...</div>
+            </div>
+          </div>
+
+          <!-- Results Summary (Hidden initially) -->
+          <div id="results-summary" class="d-none">
+            <div class="alert alert-success">
+              <h5 class="alert-heading">
+                <i class="fas fa-check-circle me-2"></i>
+                Scraping Complete!
+              </h5>
+              <p class="mb-2">Successfully scraped and analyzed <strong id="total-comments">0</strong> comments.</p>
+              <hr />
+              <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('results') }}" class="btn btn-success">
+                  <i class="fas fa-chart-bar me-2"></i>
+                  View Results
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                  <i class="fas fa-plus me-2"></i>
+                  New Analysis
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Message (Hidden initially) -->
+          <div id="error-message" class="d-none">
+            <div class="alert alert-danger">
+              <h5 class="alert-heading">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Scraping Failed
+              </h5>
+              <p id="error-text">An error occurred during scraping.</p>
+              <hr />
+              <div class="text-center">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">
+                  <i class="fas fa-arrow-left me-2"></i>
+                  Try Again
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips Card -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <div class="card border-0 bg-light">
+        <div class="card-body text-center">
+          <h6 class="text-muted mb-2">
+            <i class="fas fa-lightbulb me-2"></i>
+            Did you know?
+          </h6>
+          <p class="mb-0 small text-muted">The scraping process may take a few minutes depending on the number of comments. We're extracting each comment and analyzing its sentiment using AI models.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_scripts %}
+<script>
+  let progressInterval;
+  let logContainer;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    logContainer = document.getElementById('status-log');
+    startScraping();
+  });
+
+  function addLogMessage(message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const colorClass = type === 'error' ? 'text-danger' : type === 'success' ? 'text-success' : type === 'warning' ? 'text-warning' : 'text-info';
+
+    const logEntry = document.createElement('div');
+    logEntry.className = `${colorClass} mb-1`;
+
+    // Different formatting for scraped comments vs system messages
+    if (type === 'success' && !message.includes('✅') && !message.includes('🤖') && !message.includes('📝')) {
+      // This is a scraped comment - format it nicely
+      logEntry.innerHTML = `<small class="text-muted">[${timestamp}]</small> <span class="fw-normal">${message}</span>`;
+    } else {
+      // System message
+      logEntry.innerHTML = `<small class="text-muted">[${timestamp}]</small> <span class="fw-bold">${message}</span>`;
+    }
+
+    logContainer.appendChild(logEntry);
+    logContainer.scrollTop = logContainer.scrollHeight;
+  }
+
+  function updateProgress(percent, text) {
+    const progressBar = document.getElementById('progress-bar');
+    const progressText = document.getElementById('progress-text');
+
+    progressBar.style.width = percent + '%';
+    progressBar.setAttribute('aria-valuenow', percent);
+    progressBar.textContent = percent + '%';
+    progressText.textContent = text;
+  }
+
+  function startScraping() {
+    addLogMessage('🚀 Starting scraping process...', 'info');
+    updateProgress(10, 'Initializing...');
+
+    // Simulate progress updates
+    setTimeout(() => {
+      addLogMessage('🔍 Connecting to {{ platform.title() }}...', 'info');
+      updateProgress(20, 'Connecting...');
+    }, 1000);
+
+    setTimeout(() => {
+      addLogMessage('📥 Extracting comments from post {{ post_id }}...', 'info');
+      updateProgress(30, 'Extracting comments...');
+    }, 2000);
+
+    // Start actual scraping
+    setTimeout(() => {
+      performScraping();
+    }, 3000);
+  }
+
+  function performScraping() {
+    const requestData = {
+      session_id: '{{ session_id }}',
+      platform: '{{ platform }}',
+      post_id: '{{ post_id }}',
+      url: new URLSearchParams(window.location.search).get('url') || 'unknown',
+    };
+
+    addLogMessage('🤖 Starting scraping and analysis...', 'info');
+    updateProgress(50, 'Scraping comments...');
+
+    // Start polling for logs
+    startLogPolling('{{ session_id }}');
+
+    fetch('/api/scrape_and_analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        // Stop log polling
+        stopLogPolling();
+
+        // Display final scraped comments if any
+        if (data.scraped_comments && data.scraped_comments.length > 0) {
+          addLogMessage(`📝 Found ${data.scraped_comments.length} comments during scraping`, 'info');
+        }
+
+        updateProgress(90, 'Finalizing...');
+        addLogMessage(`✅ Successfully analyzed ${data.total_comments} comments!`, 'success');
+
+        setTimeout(() => {
+          updateProgress(100, 'Complete!');
+          showResults(data.total_comments);
+        }, 1000);
+      })
+      .catch((error) => {
+        console.error('Scraping error:', error);
+        addLogMessage(`❌ Error: ${error.message}`, 'error');
+        showError(error.message);
+      });
+  }
+
+  function showResults(totalComments) {
+    document.getElementById('total-comments').textContent = totalComments;
+    document.getElementById('results-summary').classList.remove('d-none');
+
+    // Hide progress bar
+    document.querySelector('.progress').style.display = 'none';
+    document.getElementById('progress-text').textContent = 'Redirecting to results...';
+
+    // Auto redirect after 3 seconds
+    setTimeout(() => {
+      window.location.href = '{{ url_for("results") }}';
+    }, 3000);
+  }
+
+  function showError(errorMessage) {
+    document.getElementById('error-text').textContent = errorMessage;
+    document.getElementById('error-message').classList.remove('d-none');
+
+    // Update progress bar to show error
+    const progressBar = document.getElementById('progress-bar');
+    progressBar.classList.remove('bg-info');
+    progressBar.classList.add('bg-danger');
+    progressBar.classList.remove('progress-bar-animated');
+    updateProgress(100, 'Failed');
+  }
+
+  // Log polling functions
+  let logPollingInterval;
+  let lastLogCount = 0;
+
+  function startLogPolling(sessionId) {
+    logPollingInterval = setInterval(() => {
+      fetch(`/api/scraping_logs/${sessionId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.logs && data.logs.length > lastLogCount) {
+            // Display new logs
+            const newLogs = data.logs.slice(lastLogCount);
+            newLogs.forEach((log) => {
+              addLogMessage(log, 'success');
+            });
+            lastLogCount = data.logs.length;
+
+            // Update progress based on log count
+            if (data.logs.length > 0) {
+              const progress = Math.min(50 + data.logs.length * 2, 85);
+              updateProgress(progress, `Scraped ${data.logs.length} comments...`);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error('Error polling logs:', error);
+        });
+    }, 500); // Poll every 500ms
+  }
+
+  function stopLogPolling() {
+    if (logPollingInterval) {
+      clearInterval(logPollingInterval);
+      logPollingInterval = null;
+    }
+  }
+</script>
+{% endblock %}

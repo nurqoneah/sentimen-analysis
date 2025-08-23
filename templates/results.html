@@ -1,252 +1,286 @@
-{% extends "base.html" %}
-
-{% block title %}Analysis Results - Simple Sentiment Analysis{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Analysis Results - Simple Sentiment Analysis{% endblock %} {% block content %}
 <div class="container">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h1 class="display-5">
-                    <i class="fas fa-chart-bar me-3"></i>
-                    Analysis Results
-                </h1>
-                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
-                    <i class="fas fa-arrow-left me-2"></i>
-                    Back to Dashboard
-                </a>
-            </div>
-        </div>
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1 class="display-5">
+          <i class="fas fa-chart-bar me-3"></i>
+          Analysis Results
+        </h1>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+          <i class="fas fa-arrow-left me-2"></i>
+          Back to Dashboard
+        </a>
+      </div>
     </div>
+  </div>
 
-    <!-- Analysis Summary -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Analysis Summary
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h3 class="text-primary mb-1">{{ summary.total_items }}</h3>
-                                <p class="text-muted mb-0">
-                                    {% if analysis_type == 'single_text' %}
-                                        Text Analyzed
-                                    {% else %}
-                                        Comments Analyzed
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        
-                        {% for sentiment, count in summary.sentiment_distribution.items() %}
-                        <div class="col-md-3">
-                            <div class="text-center">
-                                <h3 class="mb-1 
-                                    {% if sentiment == 'positive' %}text-success
-                                    {% elif sentiment == 'negative' %}text-danger
-                                    {% else %}text-info{% endif %}">
-                                    {{ count }}
-                                </h3>
-                                <p class="text-muted mb-0">
-                                    {{ sentiment.title() }}
-                                    {% if summary.total_items > 1 %}
-                                        ({{ "%.1f"|format((count / summary.total_items) * 100) }}%)
-                                    {% endif %}
-                                </p>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    
-                    {% if analysis_type != 'single_text' %}
-                    <hr class="my-3">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p class="mb-1">
-                                <strong>Analysis Type:</strong> 
-                                {% if analysis_type == 'csv_upload' %}
-                                    CSV File Upload
-                                {% elif analysis_type == 'url_scraping' %}
-                                    Social Media Scraping ({{ session_data.platform.title() if session_data.platform else 'Unknown' }})
-                                {% endif %}
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            {% if analysis_type == 'csv_upload' %}
-                                <p class="mb-1">
-                                    <strong>Original File:</strong> {{ session_data.original_filename }}
-                                </p>
-                            {% elif analysis_type == 'url_scraping' %}
-                                <p class="mb-1">
-                                    <strong>Source URL:</strong> 
-                                    <a href="{{ session_data.original_url }}" target="_blank" class="text-decoration-none">
-                                        {{ session_data.post_id }}
-                                    </a>
-                                </p>
-                            {% endif %}
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+  <!-- Analysis Summary -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            Analysis Summary
+          </h4>
         </div>
-    </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-3">
+              <div class="text-center">
+                <h3 class="text-primary mb-1">{{ summary.total_items }}</h3>
+                <p class="text-muted mb-0">{% if analysis_type == 'single_text' %} Text Analyzed {% else %} Comments Analyzed {% endif %}</p>
+              </div>
+            </div>
 
-    <!-- Action Buttons -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <h5 class="card-title mb-4">What would you like to do next?</h5>
-                    
-                    <div class="row g-3">
-                        {% if analysis_type == 'single_text' %}
-                        <!-- Single Text Result Display -->
-                        <div class="col-12">
-                            <div class="alert alert-{{ 'success' if session_data.analysis_data.sentiment_label == 'positive' else 'danger' if session_data.analysis_data.sentiment_label == 'negative' else 'info' }} text-center">
-                                <h4 class="alert-heading">
-                                    <i class="fas fa-{{ 'smile' if session_data.analysis_data.sentiment_label == 'positive' else 'frown' if session_data.analysis_data.sentiment_label == 'negative' else 'meh' }} me-2"></i>
-                                    Sentiment: {{ session_data.analysis_data.sentiment_label.title() }}
-                                </h4>
-                                <p class="mb-0">
-                                    Confidence Score: <strong>{{ "%.2f"|format(session_data.analysis_data.sentiment_score * 100) }}%</strong>
-                                </p>
-                            </div>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="col-lg-4">
-                            <a href="{{ url_for('export_results') }}" class="btn btn-success btn-lg w-100 h-100 d-flex flex-column justify-content-center">
-                                <i class="fas fa-download fa-2x mb-2"></i>
-                                <span class="fw-bold">Export Analysis</span>
-                                <small class="text-white-50">Download CSV results</small>
-                            </a>
-                        </div>
-                        
-                        {% if analysis_type != 'single_text' %}
-                        <div class="col-lg-4">
-                            <a href="{{ url_for('visualizations') }}" class="btn btn-info btn-lg w-100 h-100 d-flex flex-column justify-content-center">
-                                <i class="fas fa-chart-pie fa-2x mb-2"></i>
-                                <span class="fw-bold">View Visualizations</span>
-                                <small class="text-white-50">Interactive charts & graphs</small>
-                            </a>
-                        </div>
-                        {% endif %}
-                        
-                        <div class="col-lg-4">
-                            <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg w-100 h-100 d-flex flex-column justify-content-center">
-                                <i class="fas fa-plus fa-2x mb-2"></i>
-                                <span class="fw-bold">New Analysis</span>
-                                <small class="text-white-50">Start another analysis</small>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+            {% for sentiment, count in summary.sentiment_distribution.items() %}
+            <div class="col-md-3">
+              <div class="text-center">
+                <h3 class="mb-1 {% if sentiment == 'positive' %}text-success {% elif sentiment == 'negative' %}text-danger {% else %}text-info{% endif %}">{{ count }}</h3>
+                <p class="text-muted mb-0">{{ sentiment.title() }} {% if summary.total_items > 1 %} ({{ "%.1f"|format((count / summary.total_items) * 100) }}%) {% endif %}</p>
+              </div>
             </div>
-        </div>
-    </div>
+            {% endfor %}
+          </div>
 
-    <!-- Sample Results Preview (for multi-item analyses) -->
-    {% if analysis_type != 'single_text' and session_data.analysis_data %}
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">
-                        <i class="fas fa-eye me-2"></i>
-                        Sample Results Preview
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Comment</th>
-                                    <th>Sentiment</th>
-                                    <th>Confidence</th>
-                                    {% if 'username' in session_data.analysis_data[0] %}
-                                    <th>Username</th>
-                                    {% endif %}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in session_data.analysis_data[:5] %}
-                                <tr>
-                                    <td>
-                                        <div class="text-truncate" style="max-width: 300px;" title="{{ item.comment_text }}">
-                                            {{ item.comment_text }}
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ 'success' if item.sentiment_label == 'positive' else 'danger' if item.sentiment_label == 'negative' else 'info' }}">
-                                            {{ item.sentiment_label.title() }}
-                                        </span>
-                                    </td>
-                                    <td>{{ "%.2f"|format(item.sentiment_score * 100) }}%</td>
-                                    {% if 'username' in item %}
-                                    <td>{{ item.username or 'N/A' }}</td>
-                                    {% endif %}
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    {% if session_data.analysis_data|length > 5 %}
-                    <div class="text-center mt-3">
-                        <p class="text-muted">
-                            Showing 5 of {{ session_data.analysis_data|length }} results. 
-                            <a href="{{ url_for('export_results') }}" class="text-decoration-none">Download full results</a>
-                        </p>
-                    </div>
-                    {% endif %}
-                </div>
+          {% if analysis_type != 'single_text' %}
+          <hr class="my-3" />
+          <div class="row">
+            <div class="col-md-6">
+              <p class="mb-1">
+                <strong>Analysis Type:</strong>
+                {% if analysis_type == 'csv_upload' %} CSV File Upload {% elif analysis_type == 'url_scraping' %} Social Media Scraping ({{ session_data.platform.title() if session_data.platform else 'Unknown' }}) {% endif %}
+              </p>
             </div>
+            <div class="col-md-6">
+              {% if analysis_type == 'csv_upload' %}
+              <p class="mb-1"><strong>Original File:</strong> {{ session_data.original_filename }}</p>
+              {% elif analysis_type == 'url_scraping' %}
+              <p class="mb-1">
+                <strong>Source URL:</strong>
+                <a href="{{ session_data.original_url }}" target="_blank" class="text-decoration-none"> {{ session_data.post_id }} </a>
+              </p>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
         </div>
+      </div>
     </div>
-    {% endif %}
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body text-center">
+          <h5 class="card-title mb-4">What would you like to do next?</h5>
+
+          <div class="row g-3">
+            {% if analysis_type == 'single_text' %}
+            <!-- Single Text Result Display -->
+            <div class="col-12">
+              <div class="alert alert-{{ 'success' if session_data.analysis_data.sentiment_label == 'positive' else 'danger' if session_data.analysis_data.sentiment_label == 'negative' else 'info' }} text-center">
+                <h4 class="alert-heading">
+                  <i class="fas fa-{{ 'smile' if session_data.analysis_data.sentiment_label == 'positive' else 'frown' if session_data.analysis_data.sentiment_label == 'negative' else 'meh' }} me-2"></i>
+                  Sentiment: {{ session_data.analysis_data.sentiment_label.title() }}
+                </h4>
+                <p class="mb-0">Confidence Score: <strong>{{ "%.2f"|format(session_data.analysis_data.sentiment_score * 100) }}%</strong></p>
+              </div>
+            </div>
+            {% endif %}
+
+            <div class="col-lg-4">
+              <a href="{{ url_for('export_results') }}" class="btn btn-success btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                <i class="fas fa-download fa-2x mb-2"></i>
+                <span class="fw-bold">Export Analysis</span>
+                <small class="text-white-50">Download CSV results</small>
+              </a>
+            </div>
+
+            {% if analysis_type != 'single_text' %}
+            <div class="col-lg-4">
+              <a href="{{ url_for('visualizations') }}" class="btn btn-info btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                <i class="fas fa-chart-pie fa-2x mb-2"></i>
+                <span class="fw-bold">View Visualizations</span>
+                <small class="text-white-50">Interactive charts & graphs</small>
+              </a>
+            </div>
+            {% endif %}
+
+            <div class="col-lg-4">
+              <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg w-100 h-100 d-flex flex-column justify-content-center">
+                <i class="fas fa-plus fa-2x mb-2"></i>
+                <span class="fw-bold">New Analysis</span>
+                <small class="text-white-50">Start another analysis</small>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sample Results Preview (for multi-item analyses) -->
+  {% if analysis_type != 'single_text' and session_data.total_comments %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>
+            Analysis Information
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <p class="mb-2"><strong>Total Comments Analyzed:</strong> {{ session_data.total_comments }}</p>
+              <p class="mb-2"><strong>Analysis Date:</strong> {{ session_data.timestamp }}</p>
+            </div>
+            <div class="col-md-6">
+              {% if analysis_type == 'url_scraping' %}
+              <p class="mb-2"><strong>Platform:</strong> {{ session_data.platform.title() }}</p>
+              <p class="mb-2"><strong>Post ID:</strong> {{ session_data.post_id }}</p>
+              {% elif analysis_type == 'csv_upload' %}
+              <p class="mb-2"><strong>Original File:</strong> {{ session_data.original_filename }}</p>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="text-center mt-3">
+            <div class="alert alert-info">
+              <i class="fas fa-chart-pie me-2"></i>
+              <strong>Ready for Analysis!</strong>
+              Click "View Visualizations" to see detailed charts and insights, or "Export Analysis" to download the complete results.
+            </div>
+          </div>
+
+          <!-- Sample Results Preview -->
+          <div class="mt-4">
+            <h6 class="text-muted mb-3">
+              <i class="fas fa-eye me-2"></i>
+              Sample Results Preview (First 5 items)
+            </h6>
+            <div id="results-preview-table">
+              <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading preview...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
-{% endblock %}
-
-{% block extra_scripts %}
+{% endblock %} {% block extra_scripts %}
 <script>
-    // Add some interactivity
-    document.addEventListener('DOMContentLoaded', function() {
-        // Animate numbers on load
-        const numbers = document.querySelectorAll('h3');
-        numbers.forEach(num => {
-            if (!isNaN(num.textContent)) {
-                num.style.opacity = '0';
-                num.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    num.style.transition = 'all 0.5s ease';
-                    num.style.opacity = '1';
-                    num.style.transform = 'translateY(0)';
-                }, 100);
-            }
-        });
-        
-        // Add hover effects to action buttons
-        const actionButtons = document.querySelectorAll('.btn-lg');
-        actionButtons.forEach(btn => {
-            btn.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-2px)';
-                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
-            });
-            
-            btn.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '';
-            });
-        });
+  // Add some interactivity
+  document.addEventListener('DOMContentLoaded', function () {
+    // Animate numbers on load
+    const numbers = document.querySelectorAll('h3');
+    numbers.forEach((num) => {
+      if (!isNaN(num.textContent)) {
+        num.style.opacity = '0';
+        num.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          num.style.transition = 'all 0.5s ease';
+          num.style.opacity = '1';
+          num.style.transform = 'translateY(0)';
+        }, 100);
+      }
     });
+
+    // Add hover effects to action buttons
+    const actionButtons = document.querySelectorAll('.btn-lg');
+    actionButtons.forEach((btn) => {
+      btn.addEventListener('mouseenter', function () {
+        this.style.transform = 'translateY(-2px)';
+        this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.2)';
+      });
+
+      btn.addEventListener('mouseleave', function () {
+        this.style.transform = 'translateY(0)';
+        this.style.boxShadow = '';
+      });
+    });
+
+    // Load results preview for multi-item analyses
+    {% if analysis_type != 'single_text' and session_data.csv_filepath %}
+    loadResultsPreview();
+    {% endif %}
+  });
+
+  function loadResultsPreview() {
+    fetch('/api/results_preview')
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          document.getElementById('results-preview-table').innerHTML =
+            `<div class="alert alert-warning">${data.error}</div>`;
+          return;
+        }
+
+        let html = `
+          <div class="table-responsive">
+            <table class="table table-hover table-sm">
+              <thead class="table-light">
+                <tr>
+                  <th>Comment</th>
+                  <th>Sentiment</th>
+                  <th>Confidence</th>
+                  ${data.preview[0].username ? '<th>Username</th>' : ''}
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        data.preview.forEach(item => {
+          const sentimentClass = item.sentiment_label === 'positive' ? 'success' :
+                               item.sentiment_label === 'negative' ? 'danger' : 'info';
+
+          html += `
+            <tr>
+              <td>
+                <div class="text-truncate" style="max-width: 300px;" title="${item.comment_text}">
+                  ${item.comment_text}
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-${sentimentClass}">
+                  ${item.sentiment_label.charAt(0).toUpperCase() + item.sentiment_label.slice(1)}
+                </span>
+              </td>
+              <td>${(item.sentiment_score * 100).toFixed(1)}%</td>
+              ${item.username ? `<td>${item.username || 'N/A'}</td>` : ''}
+            </tr>
+          `;
+        });
+
+        html += `
+              </tbody>
+            </table>
+          </div>
+          <div class="text-center mt-2">
+            <small class="text-muted">
+              Showing 5 of ${data.total} results.
+              <a href="{{ url_for('export_results') }}" class="text-decoration-none">Download full results</a>
+            </small>
+          </div>
+        `;
+
+        document.getElementById('results-preview-table').innerHTML = html;
+      })
+      .catch(error => {
+        console.error('Error loading preview:', error);
+        document.getElementById('results-preview-table').innerHTML =
+          '<div class="alert alert-danger">Error loading preview data</div>';
+      });
+  }
 </script>
 {% endblock %}

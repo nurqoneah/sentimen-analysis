@@ -79,7 +79,9 @@ class TikTokScraper:
             ) if parsed_data.get('total_reply') else []
         )
 
-        logger.info(f'{comment.create_time} - {comment.username}: {comment.comment}')
+        # Simple log format: username - comment (truncated)
+        comment_preview = comment.comment[:100] + "..." if len(comment.comment) > 100 else comment.comment
+        logger.info(f'{comment.username} - {comment_preview}')
         return comment
 
     def get_all_replies(self, comment_id: str) -> Iterator[Comment]:
@@ -186,7 +188,7 @@ class TikTokScraper:
             List[Dict]: List of standardized comment dictionaries
         """
         try:
-            logger.info(f'Starting scrape for TikTok video ID: {aweme_id}')
+            logger.info(f'Starting to scrape TikTok video {aweme_id}...')
             
             comments: Comments = self(aweme_id=aweme_id)
             comment_list = comments.dict['comments']
@@ -202,7 +204,7 @@ class TikTokScraper:
                 }
                 standardized_comments.append(standardized_comment)
             
-            logger.info(f"Successfully scraped {len(standardized_comments)} comments from TikTok video {aweme_id}")
+            logger.info(f"✓ Scraped {len(standardized_comments)} comments from TikTok video {aweme_id}")
             return standardized_comments
             
         except Exception as e:

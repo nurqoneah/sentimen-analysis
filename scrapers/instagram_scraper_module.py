@@ -92,12 +92,19 @@ class InstagramScraper:
                 for edge in edges:
                     node = edge.get("node", {})
                     if node:
+                        reply_text = node.get("text", "")
+                        reply_username = node.get("owner", {}).get("username", "")
+
                         all_replies.append({
                             "post_id": shortcode,
-                            "username": node.get("owner", {}).get("username", ""),
+                            "username": reply_username,
                             "created_at": node.get("created_at", ""),
-                            "comment_text": node.get("text", "")
+                            "comment_text": reply_text
                         })
+
+                        # Log reply in simple format
+                        reply_preview = reply_text[:100] + "..." if len(reply_text) > 100 else reply_text
+                        logger.info(f"  ↳ {reply_username} - {reply_preview}")
                 
                 page_info = edge_info.get("page_info", {})
                 has_next = page_info.get("has_next_page", False)
@@ -117,7 +124,7 @@ class InstagramScraper:
         has_next = True
         cursor = ""
         
-        logger.info(f"Fetching comments for post {shortcode}...")
+        logger.info(f"Starting to scrape Instagram post {shortcode}...")
         
         while has_next:
             vars = {"shortcode": shortcode, "first": self.comments_per_page}
@@ -143,17 +150,23 @@ class InstagramScraper:
                         parent_comment_id = node.get("id")
                         
                         # Add parent comment
+                        comment_text = node.get("text", "")
+                        username = node.get("owner", {}).get("username", "")
+
                         all_comments.append({
                             "post_id": shortcode,
-                            "username": node.get("owner", {}).get("username", ""),
+                            "username": username,
                             "created_at": node.get("created_at", ""),
-                            "comment_text": node.get("text", "")
+                            "comment_text": comment_text
                         })
-                        
+
+                        # Log comment in simple format
+                        comment_preview = comment_text[:100] + "..." if len(comment_text) > 100 else comment_text
+                        logger.info(f"{username} - {comment_preview}")
+
                         # Fetch replies if any
                         child_comment_count = node.get("edge_threaded_comments", {}).get("count", 0)
                         if child_comment_count > 0:
-                            logger.info(f"Fetching {child_comment_count} replies for comment {parent_comment_id}")
                             replies = self.fetch_replies(shortcode, parent_comment_id, headers)
                             all_comments.extend(replies)
                 
@@ -166,7 +179,6 @@ class InstagramScraper:
                 break
 
             if has_next:
-                logger.info("Fetching next page of comments...")
                 sleep(2)  # Rate limiting
                 
         return all_comments
@@ -185,7 +197,7 @@ class InstagramScraper:
             headers = self.build_headers(post_id)
             comments = self.fetch_comments(post_id, headers)
             
-            logger.info(f"Successfully scraped {len(comments)} comments from Instagram post {post_id}")
+            logger.info(f"✓ Scraped {len(comments)} comments from Instagram post {post_id}")
             return comments
             
         except Exception as e:
@@ -200,4 +212,4 @@ class InstagramScraper:
             cookies_str (str): Cookie string for Instagram session
         """
         self.cookies_str = cookies_str
-        logger.info("Instagram cookies updated")
+        # Cookies updated silently
