@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Visualizations - Simple Sentiment Analysis{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="display-5">
+                    <i class="fas fa-chart-pie me-3"></i>
+                    Interactive Visualizations
+                </h1>
+                <div>
+                    <a href="{{ url_for('results') }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Results
+                    </a>
+                    <a href="{{ url_for('export_results') }}" class="btn btn-success">
+                        <i class="fas fa-download me-2"></i>
+                        Export Data
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="row g-4">
+        <!-- Sentiment Distribution -->
+        {% if charts.sentiment_distribution %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Sentiment Distribution by Platform
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="sentiment-distribution-chart"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Confidence Score Distribution -->
+        {% if charts.confidence_distribution %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-area me-2"></i>
+                        Confidence Score Distribution by Platform
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="confidence-distribution-chart"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Comment Length vs Confidence -->
+        {% if charts.sentiment_confidence_scatter %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-scatter-chart me-2"></i>
+                        Comment Length vs Confidence Score
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="sentiment-confidence-scatter"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Time Trends -->
+        {% if charts.time_trends %}
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Sentiment Trends Over Time
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="time-trends-chart"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Platform Comparison -->
+        {% if charts.platform_comparison %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-balance-scale me-2"></i>
+                        Platform and Sentiment Breakdown
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="platform-comparison-chart"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Word Frequency -->
+        {% if charts.word_frequency %}
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-font me-2"></i>
+                        Top Words
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="word-frequency-chart"></div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Word Cloud Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-gradient bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cloud me-2"></i>
+                        Word Clouds
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <button class="btn btn-primary" onclick="loadWordClouds()">
+                            <i class="fas fa-sync-alt me-2"></i>
+                            Generate Word Clouds
+                        </button>
+                    </div>
+                    <div id="wordcloud-container" class="text-center">
+                        <p class="text-muted">Click the button above to generate word clouds</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 bg-light">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-download me-2"></i>
+                        Export Options
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="fas fa-file-csv fa-2x text-success mb-2"></i>
+                                <h6>Download Analysis</h6>
+                                <p class="text-muted small">Get the complete dataset with sentiment scores</p>
+                                <a href="{{ url_for('export_results') }}" class="btn btn-success">
+                                    <i class="fas fa-download me-1"></i>
+                                    Download CSV
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="fas fa-chart-bar fa-2x text-info mb-2"></i>
+                                <h6>Save Charts</h6>
+                                <p class="text-muted small">Right-click on any chart to save as image</p>
+                                <button class="btn btn-info" onclick="showChartHelp()">
+                                    <i class="fas fa-question-circle me-1"></i>
+                                    How to Save
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="fas fa-share-alt fa-2x text-warning mb-2"></i>
+                                <h6>Share Results</h6>
+                                <p class="text-muted small">Copy URL to share this analysis</p>
+                                <button class="btn btn-warning" onclick="copyURL()">
+                                    <i class="fas fa-copy me-1"></i>
+                                    Copy URL
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Chart data from Flask
+    const charts = {{ charts | tojson }};
+    
+    // Render all charts
+    document.addEventListener('DOMContentLoaded', function() {
+        renderCharts();
+    });
+    
+    function renderCharts() {
+        // Sentiment Distribution
+        if (charts.sentiment_distribution) {
+            Plotly.newPlot('sentiment-distribution-chart', 
+                charts.sentiment_distribution.data, 
+                charts.sentiment_distribution.layout,
+                {responsive: true, displayModeBar: true}
+            );
+        }
+        
+        // Confidence Distribution
+        if (charts.confidence_distribution) {
+            Plotly.newPlot('confidence-distribution-chart', 
+                charts.confidence_distribution.data, 
+                charts.confidence_distribution.layout,
+                {responsive: true, displayModeBar: true}
+            );
+        }
+        
+        // Sentiment Confidence Scatter
+        if (charts.sentiment_confidence_scatter) {
+            Plotly.newPlot('sentiment-confidence-scatter', 
+                charts.sentiment_confidence_scatter.data, 
+                charts.sentiment_confidence_scatter.layout,
+                {responsive: true, displayModeBar: true}
+            );
+        }
+        
+        // Time Trends
+        if (charts.time_trends) {
+            Plotly.newPlot('time-trends-chart', 
+                charts.time_trends.data, 
+                charts.time_trends.layout,
+                {responsive: true, displayModeBar: true}
+            );
+        }
+        
+        // Platform Comparison
+        if (charts.platform_comparison) {
+            Plotly.newPlot('platform-comparison-chart', 
+                charts.platform_comparison.data, 
+                charts.platform_comparison.layout,
+                {responsive: true, displayModeBar: true}
+            );
+        }
+        
+        // Word Frequency
+        if (charts.word_frequency) {
+            Plotly.newPlot('word-frequency-chart', 
+                charts.word_frequency.data, 
+                charts.word_frequency.layout,
+                {responsive: true, displayModeBar: true}
+            );
+        }
+    }
+    
+    function loadWordClouds() {
+        const container = document.getElementById('wordcloud-container');
+        container.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><p>Generating word clouds...</p></div>';
+        
+        fetch('/api/wordcloud')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    container.innerHTML = `<div class="alert alert-warning">${data.error}</div>`;
+                    return;
+                }
+                
+                let html = '<div class="row">';
+                
+                // Overall word cloud
+                if (data.overall && data.overall.image) {
+                    html += `
+                        <div class="col-md-6 mb-3">
+                            <h6>Overall Comments</h6>
+                            <img src="${data.overall.image}" class="img-fluid rounded" alt="Overall Word Cloud">
+                            <p class="small text-muted mt-2">${data.overall.word_count} unique words</p>
+                        </div>
+                    `;
+                }
+                
+                // Per-sentiment word clouds
+                ['positive', 'negative', 'neutral'].forEach(sentiment => {
+                    if (data[sentiment] && data[sentiment].image) {
+                        html += `
+                            <div class="col-md-6 mb-3">
+                                <h6>${sentiment.charAt(0).toUpperCase() + sentiment.slice(1)} Comments</h6>
+                                <img src="${data[sentiment].image}" class="img-fluid rounded" alt="${sentiment} Word Cloud">
+                                <p class="small text-muted mt-2">${data[sentiment].word_count} unique words</p>
+                            </div>
+                        `;
+                    }
+                });
+                
+                html += '</div>';
+                container.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error loading word clouds:', error);
+                container.innerHTML = '<div class="alert alert-danger">Error loading word clouds. Please try again.</div>';
+            });
+    }
+    
+    function showChartHelp() {
+        alert('To save a chart as an image:\n\n1. Hover over the chart\n2. Click the camera icon in the toolbar\n3. The image will be downloaded automatically\n\nYou can also right-click on any chart and select "Save image as..."');
+    }
+    
+    function copyURL() {
+        navigator.clipboard.writeText(window.location.href).then(function() {
+            // Show success message
+            const btn = event.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-success');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.classList.remove('btn-success');
+                btn.classList.add('btn-warning');
+            }, 2000);
+        });
+    }
+</script>
+{% endblock %}

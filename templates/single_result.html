@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Single Text Result - Simple Sentiment Analysis{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="display-5">
+                    <i class="fas fa-eye me-3"></i>
+                    Single Text Analysis Result
+                </h1>
+                <div>
+                    <a href="{{ url_for('results') }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Results
+                    </a>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>
+                        New Analysis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Display -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-{{ 'success' if data.sentiment_label == 'positive' else 'danger' if data.sentiment_label == 'negative' else 'info' }} text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-{{ 'smile' if data.sentiment_label == 'positive' else 'frown' if data.sentiment_label == 'negative' else 'meh' }} me-2"></i>
+                        {{ data.sentiment_label.title() }} Sentiment
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Original Text -->
+                    <div class="mb-4">
+                        <h5 class="text-muted mb-3">
+                            <i class="fas fa-quote-left me-2"></i>
+                            Analyzed Text:
+                        </h5>
+                        <div class="bg-light p-3 rounded border-start border-4 border-{{ 'success' if data.sentiment_label == 'positive' else 'danger' if data.sentiment_label == 'negative' else 'info' }}">
+                            <p class="mb-0 fs-5">{{ data.text }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Confidence Score -->
+                    <div class="mb-4">
+                        <h5 class="text-muted mb-3">
+                            <i class="fas fa-chart-bar me-2"></i>
+                            Confidence Score:
+                        </h5>
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="progress" style="height: 30px;">
+                                    <div class="progress-bar bg-{{ 'success' if data.sentiment_label == 'positive' else 'danger' if data.sentiment_label == 'negative' else 'info' }}" 
+                                         role="progressbar" 
+                                         style="width: {{ data.sentiment_score * 100 }}%"
+                                         aria-valuenow="{{ data.sentiment_score * 100 }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                        {{ "%.1f"|format(data.sentiment_score * 100) }}%
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <h4 class="mb-0 text-{{ 'success' if data.sentiment_label == 'positive' else 'danger' if data.sentiment_label == 'negative' else 'info' }}">
+                                    {{ "%.1f"|format(data.sentiment_score * 100) }}%
+                                </h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- All Scores (if available) -->
+                    {% if data.all_scores %}
+                    <div class="mb-4">
+                        <h5 class="text-muted mb-3">
+                            <i class="fas fa-list me-2"></i>
+                            Detailed Scores:
+                        </h5>
+                        <div class="row">
+                            {% for sentiment, score in data.all_scores.items() %}
+                            <div class="col-md-4 mb-2">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body text-center py-2">
+                                        <h6 class="mb-1 text-{{ 'success' if sentiment == 'positive' else 'danger' if sentiment == 'negative' else 'info' }}">
+                                            {{ sentiment.title() }}
+                                        </h6>
+                                        <p class="mb-0 fw-bold">{{ "%.1f"|format(score * 100) }}%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Analysis Info -->
+                    <div class="mb-4">
+                        <h5 class="text-muted mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Analysis Information:
+                        </h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <strong>Analysis Date:</strong> 
+                                    {{ data.timestamp[:19] if data.timestamp else 'N/A' }}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1">
+                                    <strong>Text Length:</strong> 
+                                    {{ data.text|length }} characters
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interpretation -->
+                    <div class="alert alert-{{ 'success' if data.sentiment_label == 'positive' else 'danger' if data.sentiment_label == 'negative' else 'info' }} border-0">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Interpretation:
+                        </h6>
+                        <p class="mb-0">
+                            {% if data.sentiment_label == 'positive' %}
+                                This text expresses a <strong>positive</strong> sentiment with {{ "%.1f"|format(data.sentiment_score * 100) }}% confidence. 
+                                The language used suggests favorable opinions, satisfaction, or optimistic views.
+                            {% elif data.sentiment_label == 'negative' %}
+                                This text expresses a <strong>negative</strong> sentiment with {{ "%.1f"|format(data.sentiment_score * 100) }}% confidence. 
+                                The language used suggests unfavorable opinions, dissatisfaction, or critical views.
+                            {% else %}
+                                This text expresses a <strong>neutral</strong> sentiment with {{ "%.1f"|format(data.sentiment_score * 100) }}% confidence. 
+                                The language used is balanced, factual, or doesn't lean strongly toward positive or negative emotions.
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <div class="btn-group" role="group">
+                <a href="{{ url_for('export_results') }}" class="btn btn-success btn-lg">
+                    <i class="fas fa-download me-2"></i>
+                    Export Result
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>
+                    Analyze Another Text
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate progress bar
+        const progressBar = document.querySelector('.progress-bar');
+        if (progressBar) {
+            progressBar.style.width = '0%';
+            setTimeout(() => {
+                progressBar.style.transition = 'width 1s ease-in-out';
+                progressBar.style.width = '{{ data.sentiment_score * 100 }}%';
+            }, 500);
+        }
+        
+        // Animate score cards
+        const scoreCards = document.querySelectorAll('.card-body');
+        scoreCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 200 * index);
+        });
+    });
+</script>
+{% endblock %}
