@@ -1,6 +1,6 @@
 """
 Sentiment Analysis Module
-Uses Hugging Face cardiffnlp/twitter-roberta-base-sentiment-latest model
+Uses Hugging Face w11wo/indonesian-roberta-base-sentiment-classifier-latest model
 """
 
 import pandas as pd
@@ -19,7 +19,7 @@ class SentimentAnalyzer:
     Sentiment analyzer using Hugging Face transformers
     """
     
-    def __init__(self, model_name="cardiffnlp/twitter-roberta-base-sentiment-latest"):
+    def __init__(self, model_name="w11wo/indonesian-roberta-base-sentiment-classifier-latest"):
         """
         Initialize the sentiment analyzer
         
@@ -57,7 +57,7 @@ class SentimentAnalyzer:
             # Fallback to a simpler model if the main one fails
             try:
                 logger.info("Trying fallback model...")
-                self.model_name = "cardiffnlp/twitter-roberta-base-sentiment"
+                self.model_name = "w11wo/indonesian-roberta-base-sentiment-classifier"
                 self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
                 self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
                 self.classifier = pipeline(
